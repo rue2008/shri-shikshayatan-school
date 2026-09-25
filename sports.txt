@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pitch Read</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night:#08070b;
+  --pink:#ff4fa3;
+  --cyan:#4fe3ff;
+  --violet:#9d6bff;
+  --lime:#d8ff4f;
+  --text:#f3f1f6;
+  --muted:#a49ba8;
+  --glass:rgba(255,255,255,.06);
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  font-family:"Outfit","Segoe UI",sans-serif;
+  font-size:1.02rem;
+  line-height:1.6;
+  color:var(--text);
+  background:var(--night);
+  overflow-x:hidden;
+}
+h1,h2,h3 { font-family:"Unbounded","Segoe UI",sans-serif; margin:0; }
+.wrap { max-width:1140px; margin:0 auto; padding:0 22px; position:relative; z-index:2; }
+#fx { position:fixed; inset:0; z-index:1; pointer-events:none; }
+#spot { position:fixed; width:520px; height:520px; margin:-260px 0 0 -260px; border-radius:50%; background:radial-gradient(circle, rgba(255,79,163,.14), transparent 65%); pointer-events:none; z-index:1; left:-999px; top:-999px; }
+.blob { position:fixed; border-radius:50%; filter:blur(100px); opacity:.24; z-index:0; animation:drift 20s ease-in-out infinite alternate; }
+.b1 { width:460px; height:460px; background:var(--pink); top:-120px; right:-100px; }
+.b2 { width:400px; height:400px; background:var(--violet); bottom:-140px; left:-90px; animation-delay:-9s; }
+@keyframes drift { to { transform:translate(-90px,70px) scale(1.15); } }
+nav { position:sticky; top:0; z-index:30; display:flex; justify-content:space-between; align-items:center; padding:16px 22px; background:rgba(8,7,11,.75); backdrop-filter:blur(12px); border-bottom:1px solid rgba(255,255,255,.08); flex-wrap:wrap; gap:10px; }
+.brand { font-family:"Unbounded",sans-serif; font-weight:800; font-size:16px; }
+.brand em { font-style:normal; color:var(--pink); }
+.tabs { display:flex; gap:6px; }
+.tabs button { background:transparent; border:1px solid transparent; color:var(--muted); padding:8px 14px; border-radius:20px; font:600 13px "Outfit",sans-serif; cursor:pointer; }
+.tabs button:hover { color:var(--text); }
+.tabs button.on { color:var(--night); background:var(--pink); }
+.page { display:none; }
+.page.on { display:block; animation:fadeIn .35s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } }
+header { padding:80px 0 60px; }
+header h1 { font-size:clamp(2rem,6vw,4rem); line-height:1.12; font-weight:800; max-width:12.5em; }
+.glow { color:var(--pink); text-shadow:0 0 12px rgba(255,79,163,.9), 0 0 38px rgba(255,79,163,.5); animation:pulse 3s ease-in-out infinite; display:inline-block; }
+.glow.swap { animation:swap .5s ease, pulse 3s ease-in-out infinite; }
+@keyframes pulse { 50% { text-shadow:0 0 6px rgba(255,79,163,.6), 0 0 22px rgba(255,79,163,.3); } }
+@keyframes swap { from { opacity:0; transform:translateY(14px); filter:blur(6px); } }
+header p { max-width:34em; font-size:1.15rem; color:var(--muted); margin:24px 0 0; }
+.facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px; margin-top:50px; }
+.fact { background:var(--glass); border:1px solid rgba(255,79,163,.25); border-radius:16px; padding:22px; backdrop-filter:blur(8px); }
+.fact strong { display:block; font-family:"Unbounded",sans-serif; font-size:1.9rem; color:var(--cyan); text-shadow:0 0 16px rgba(79,227,255,.5); }
+section { padding:60px 0 10px; }
+h2 { font-size:clamp(1.4rem,4vw,2.1rem); margin-bottom:10px; }
+.lead { max-width:38em; color:var(--muted); margin:0 0 28px; }
+.grid2 { display:grid; grid-template-columns:1.15fr .85fr; gap:24px; align-items:stretch; }
+@media (max-width:900px) { .grid2 { grid-template-columns:1fr; } }
+.panel { background:var(--glass); border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:28px; backdrop-filter:blur(8px); margin-bottom:24px; }
+.panelTop { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-bottom:24px; }
+.bars { display:flex; align-items:end; gap:16px; height:220px; border-bottom:1px solid rgba(255,255,255,.15); }
+.bar { flex:1; position:relative; height:var(--h); background:linear-gradient(to top, var(--pink), var(--violet)); border-radius:4px 4px 0 0; }
+.bar span { position:absolute; bottom:-24px; left:50%; transform:translateX(-50%); font-size:11px; color:var(--muted); }
+.bar em { position:absolute; top:-22px; left:50%; transform:translateX(-50%); font-style:normal; font-size:12px; color:var(--lime); }
+.radarWrap { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.legend { display:flex; gap:14px; margin-top:18px; flex-wrap:wrap; justify-content:center; }
+.legend span { font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+.trendline { width:100%; height:auto; }
+.insight { background:linear-gradient(135deg, rgba(255,255,255,.07), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:32px; margin:28px 0; }
+.insight h3 { font-size:22px; margin-bottom:12px; color:var(--lime); text-shadow:0 0 18px rgba(216,255,79,.25); }
+.insight p { color:#cbc4d0; max-width:720px; line-height:1.8; font-size:14.5px; }
+.players { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:10px; }
+@media (max-width:820px) { .players { grid-template-columns:1fr; } }
+.card { background:var(--glass); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:24px; transition:.2s; }
+.card:hover { border-color:var(--pink); transform:translateY(-4px); }
+.role { color:var(--cyan); font-size:11px; letter-spacing:1.5px; }
+.card h3 { font-size:23px; margin-top:40px; }
+.card p { color:var(--muted); margin-top:6px; font-size:13.5px; }
+.pstats { display:flex; gap:22px; margin-top:20px; flex-wrap:wrap; }
+.pstats b { font-size:18px; display:block; }
+.pstats small { color:var(--muted); font-size:10px; }
+footer { padding:60px 0 100px; text-align:center; color:#665f6b; font-size:.88rem; }
+#chatBtn { position:fixed; right:22px; bottom:22px; background:var(--pink); color:#180a12; border:0; border-radius:30px; padding:14px 22px; font:700 1rem "Outfit",sans-serif; cursor:pointer; box-shadow:0 0 22px rgba(255,79,163,.6); z-index:40; }
+#chat { position:fixed; right:22px; bottom:84px; width:360px; max-width:calc(100vw - 32px); background:rgba(14,10,16,.97); border:1px solid rgba(255,79,163,.35); border-radius:16px; padding:14px; box-shadow:0 0 40px rgba(255,79,163,.2); display:none; z-index:40; }
+#chat.open { display:block; }
+#chat h3 { font-size:1rem; margin-bottom:10px; color:var(--pink); }
+#log { height:260px; overflow-y:auto; padding:4px; margin-bottom:10px; }
+.msg { margin:0 0 10px; padding:9px 12px; border-radius:12px; max-width:92%; white-space:pre-wrap; font-size:.94rem; }
+.msg.bot { background:rgba(255,255,255,.08); }
+.msg.me { background:var(--pink); color:#180a12; margin-left:auto; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.chips button { background:transparent; color:var(--text); border:1px solid rgba(255,79,163,.5); padding:5px 10px; font:inherit; font-size:.8rem; border-radius:14px; cursor:pointer; }
+.row { display:flex; gap:8px; }
+.row input { flex:1; min-width:0; padding:10px 12px; border:1px solid rgba(255,255,255,.25); border-radius:10px; font:inherit; background:rgba(255,255,255,.06); color:var(--text); }
+.row button { background:var(--lime); color:#141604; border:0; padding:10px 16px; border-radius:10px; font:700 1rem "Outfit",sans-serif; cursor:pointer; }
+button:disabled { opacity:.6; cursor:wait; }
+input:focus-visible, button:focus-visible { outline:3px solid var(--lime); outline-offset:2px; }
+@media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<canvas id="fx"></canvas>
+<div id="spot"></div>
+
+<nav>
+  <div class="brand">PITCH<em>READ</em></div>
+  <div class="tabs">
+    <button class="tab on" onclick="go('home', this)">Home</button>
+    <button class="tab" onclick="go('data', this)">The Data</button>
+    <button class="tab" onclick="go('players', this)">Players</button>
+    <button class="tab" onclick="go('ai', this)">AI Analyst</button>
+  </div>
+</nav>
+
+<main id="home" class="page on">
+  <div class="wrap">
+    <header>
+      <h1><span id="titleStart"></span> <span class="glow" id="word"></span></h1>
+      <p id="tagline"></p>
+      <div class="facts" id="facts"></div>
+    </header>
+  </div>
+</main>
+
+<main id="data" class="page">
+  <div class="wrap">
+    <section>
+      <h2>The 2026 season, in numbers</h2>
+      <p class="lead">A Women's Asia Cup title, a repeat Asian Games gold, and India's first-ever Test win at Lord's — 2026 has been the busiest and most decorated year yet for this squad.</p>
+      <div class="grid2">
+        <div class="panel">
+          <div class="panelTop"><strong style="color:var(--text)">ASIAN GAMES GOLD FINAL · IND vs SL</strong><span>RUNS, 22 SEP 2026</span></div>
+          <div class="bars">
+            <div class="bar" style="--h:92%"><em>79</em><span>MANDHANA</span></div>
+            <div class="bar" style="--h:58%"><em>49*</em><span>GHOSH</span></div>
+            <div class="bar" style="--h:56%"><em>48</em><span>SHAFALI</span></div>
+            <div class="bar" style="--h:23%"><em>19</em><span>KAUR</span></div>
+          </div>
+        </div>
+        <div class="panel radarWrap">
+          <div class="panelTop" style="width:100%"><strong style="color:var(--text)">PLAYER PROFILE, 2026 FORM</strong><span>NORMALISED</span></div>
+          <svg id="radar" viewBox="0 0 320 300" width="100%" style="max-width:300px"></svg>
+          <div class="legend">
+            <span><i class="dot" style="background:var(--pink)"></i>Mandhana</span>
+            <span><i class="dot" style="background:var(--cyan)"></i>Shafali</span>
+            <span><i class="dot" style="background:var(--lime)"></i>Ghosh</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight">
+        <h3>Two openers, two different records broken</h3>
+        <p>Mandhana became the highest run-scorer in women's international cricket history in 2026 — 11,066 runs across all formats, more than anyone who's ever played the women's game. Shafali took the calendar-year T20I record the same year, with 863 runs at a strike rate over 160. One is built on longevity, the other on raw tempo, and both records fell within weeks of each other.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panelTop"><strong style="color:var(--text)">INDIA WOMEN'S ODI WIN RATE, BY YEAR</strong><span>ILLUSTRATIVE TREND</span></div>
+        <svg id="trend" class="trendline" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+      </div>
+
+      <div class="insight">
+        <h3>Not every 2026 headline was a win</h3>
+        <p>India crashed out of the ICC Women's T20 World Cup 2026 after a loss to Australia — a reminder that dominance in bilateral series and continental events hasn't yet carried through to every ICC knockout. That gap is part of the story too: the squad's white-ball depth is deeper than ever, but the biggest global trophy in the format is still the one that's got away this year.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<main id="players" class="page">
+  <div class="wrap">
+    <section>
+      <h2>The people behind the data</h2>
+      <p class="lead">Six players, six very different jobs — and every one of them was on the field for the 2026 Asian Games gold.</p>
+      <div class="players">
+        <div class="card">
+          <div class="role">OPENING BATTER · VICE-CAPTAIN</div>
+          <h3>Smriti Mandhana</h3>
+          <p>All-time leading run-scorer in women's international cricket</p>
+          <div class="pstats"><div><b>11,066</b><small>CAREER RUNS</small></div><div><b>18</b><small>CENTURIES</small></div></div>
+        </div>
+        <div class="card">
+          <div class="role">OPENING BATTER</div>
+          <h3>Shafali Verma</h3>
+          <p>Most T20I runs by anyone in the 2026 calendar year</p>
+          <div class="pstats"><div><b>863</b><small>2026 T20I RUNS</small></div><div><b>162.8</b><small>STRIKE RATE</small></div></div>
+        </div>
+        <div class="card">
+          <div class="role">BATTER · CAPTAIN</div>
+          <h3>Harmanpreet Kaur</h3>
+          <p>Led India to a repeat Asian Games gold and the Asia Cup 2026 title</p>
+          <div class="pstats"><div><b>4,541</b><small>ODI RUNS</small></div><div><b>37.22</b><small>ODI AVG</small></div></div>
+        </div>
+        <div class="card">
+          <div class="role">ALL-ROUNDER</div>
+          <h3>Deepti Sharma</h3>
+          <p>Left-arm spin plus middle-order depth; 3/6 in the Asian Games final</p>
+          <div class="pstats"><div><b>2,771</b><small>ODI RUNS</small></div><div><b>166</b><small>ODI WICKETS</small></div></div>
+        </div>
+        <div class="card">
+          <div class="role">WICKETKEEPER</div>
+          <h3>Richa Ghosh</h3>
+          <p>Finished the Asian Games final unbeaten on 49 off 22 balls</p>
+          <div class="pstats"><div><b>49*</b><small>AG FINAL RUNS</small></div><div><b>22</b><small>BALLS FACED</small></div></div>
+        </div>
+        <div class="card">
+          <div class="role">FAST BOWLER</div>
+          <h3>Renuka Singh</h3>
+          <p>New-ball swing and early breakthroughs across 2026's series</p>
+          <div class="pstats"><div><b>60+</b><small>ODI WICKETS</small></div><div><b>4.9</b><small>ODI ECON</small></div></div>
+        </div>
+      </div>
+      <div class="insight">
+        <h3>One team, six different value curves</h3>
+        <p>Mandhana's record now runs on longevity, Shafali's on tempo. Harmanpreet carries the captaincy load in the middle order, and Deepti keeps doing two jobs in the same match. Ghosh's finishing turned the Asian Games final from competitive to a rout, and Renuka's early strikes with the new ball usually decide how much pressure the rest of the attack has to work with.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<main id="ai" class="page">
+  <div class="wrap">
+    <section>
+      <h2>Ask the analyst</h2>
+      <p class="lead">A quick assistant for cricket terms, stats and players — tap the button in the corner or ask right here.</p>
+      <div class="panel" style="max-width:520px">
+        <p style="color:var(--muted); font-size:14px">Open the chat with the <b style="color:var(--pink)">Ask the analyst</b> button bottom-right of the screen. It runs on a keyword-matched set of responses — no external API, no key, fully offline.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>Built for the sports-analysis challenge · Focus: Indian women's cricket · 2026 season</footer>
+
+<button id="chatBtn" aria-expanded="false">Ask the analyst</button>
+<div id="chat" role="dialog" aria-label="Cricket analyst chat">
+  <h3>Pitch Read analyst</h3>
+  <div id="log"></div>
+  <div class="chips" id="chips"></div>
+  <div class="row">
+    <input type="text" id="q" placeholder="Ask anything cricket" aria-label="Your question">
+    <button id="send">Send</button>
+  </div>
+</div>
+
+<script>
+function go(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  window.scrollTo(0,0);
+}
+
+const CONFIG = {
+  titleStart: "Every match hides a second",
+  words: ["score", "story", "pattern", "edge"],
+  tagline: "The scoreboard tells you what happened. The data underneath tells you why. Explore Indian women's cricket in 2026 through the numbers that don't make the headline.",
+  facts: [
+    { pre:"", to:11066, dec:0, suf:"", text:"Smriti Mandhana's career international runs — the most by anyone in women's cricket history" },
+    { pre:"", to:216, dec:0, suf:"/3", text:"India's record Asian Games total in the 2026 gold-medal final against Sri Lanka" },
+    { pre:"", to:110, dec:0, suf:" sixes", text:"struck by India in T20Is in 2026 — the most by any team in a calendar year" }
+  ],
+  chips: ["What is strike rate?", "Tell me about Shafali Verma", "How do you read economy rate?"]
+};
+
+const topics = [
+  { words:["smriti","mandhana"], replies:["Smriti Mandhana is India's vice-captain and the all-time leading run-scorer in women's international cricket — 11,066 career runs and 18 centuries, a record she reached during the 2026 Asian Games."] },
+  { words:["shafali","verma"], replies:["Shafali Verma had the biggest T20I year of anyone in world cricket in 2026 — 863 runs at a strike rate over 160, including her maiden T20I century, a 49-ball hundred against Bangladesh."] },
+  { words:["deepti","sharma"], replies:["Deepti Sharma is a genuine all-rounder — 2,771 ODI runs plus 166 wickets, and she took 3 for 6 in the 2026 Asian Games final."] },
+  { words:["harman","kaur","captain"], replies:["Harmanpreet Kaur captains the side — 4,541 ODI runs at a 37.22 average, and in 2026 she led India to both the Women's Asia Cup title and a repeat Asian Games gold."] },
+  { words:["richa","ghosh"], replies:["Richa Ghosh keeps wicket and finishes innings — she was unbeaten on 49 off 22 balls in the 2026 Asian Games gold-medal final."] },
+  { words:["renuka","singh"], replies:["Renuka Singh opens the bowling with the new ball — over 60 ODI wickets at an economy around 4.9, usually the one taking the early breakthroughs."] },
+  { words:["strike","sr"], replies:["Strike rate is runs divided by balls faced, times 100. It measures tempo — a high strike rate late in an innings means something different from one set early against a fresh attack."] },
+  { words:["economy","eco"], replies:["Economy rate is runs conceded per over. Lower is generally tighter bowling, but read it next to the phase of the innings and wickets taken."] },
+  { words:["average","avg"], replies:["Batting average is runs divided by dismissals. It rewards not getting out, but says nothing about scoring speed — that's what strike rate covers."] },
+  { words:["asiangames","games","gold"], replies:["India won back-to-back Asian Games gold in cricket, beating Sri Lanka by 147 runs in the 2026 final after posting a record 216 for 3."] },
+  { words:["worldcup","world","cup"], replies:["2026 wasn't a clean sweep — India crashed out of the ICC Women's T20 World Cup after a loss to Australia, even with a record-breaking year in bilateral and continental cricket."] },
+  { words:["lords","lord","test"], replies:["India won their first-ever women's Test at Lord's in 2026, with Smriti Mandhana scoring 153 and Kranti Gaud taking 7 wickets in the match."] },
+  { words:["cricket"], replies:["Good cricket analysis connects several numbers at once — runs tell you output, strike rate tells you tempo, wickets tell you impact."] },
+  { words:["hi","hello","hey"], replies:["Hey! Ask me about Mandhana, Shafali, Harmanpreet, the Asian Games final, the Lord's Test, strike rate, or economy rate."] }
+];
+const used = {};
+
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.getElementById("titleStart").textContent = CONFIG.titleStart;
+document.getElementById("tagline").textContent = CONFIG.tagline;
+document.title = CONFIG.titleStart + " " + CONFIG.words[0];
+
+const word = document.getElementById("word");
+let wordIndex = 0;
+word.textContent = CONFIG.words[0];
+if (!still) {
+  setInterval(() => {
+    wordIndex = (wordIndex + 1) % CONFIG.words.length;
+    word.textContent = CONFIG.words[wordIndex];
+    word.classList.remove("swap");
+    void word.offsetWidth;
+    word.classList.add("swap");
+  }, 2400);
+}
+
+const factsBox = document.getElementById("facts");
+CONFIG.facts.forEach(f => {
+  const card = document.createElement("div");
+  card.className = "fact";
+  card.innerHTML = "<strong></strong><span></span>";
+  card.querySelector("span").textContent = f.text;
+  const num = card.querySelector("strong");
+  num.textContent = f.pre + (still ? f.to.toFixed(f.dec) : (0).toFixed(f.dec)) + f.suf;
+  num._fact = f;
+  factsBox.appendChild(card);
+});
+function countUp(el) {
+  const f = el._fact;
+  const start = performance.now();
+  (function tick(now) {
+    const t = Math.min(1, (now - start) / 1400);
+    el.textContent = f.pre + (f.to * (1 - Math.pow(1 - t, 3))).toFixed(f.dec) + f.suf;
+    if (t < 1) requestAnimationFrame(tick);
+  })(start);
+}
+if (!still) {
+  const seen = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { countUp(e.target); seen.unobserve(e.target); } });
+  }, { threshold:0.6 });
+  factsBox.querySelectorAll("strong").forEach(n => seen.observe(n));
+}
+
+const radarData = [
+  { name:"Mandhana", color:"var(--pink)", vals:[0.88,0.9,0.1,0.7] },
+  { name:"Shafali", color:"var(--cyan)", vals:[0.98,0.55,0.15,0.55] },
+  { name:"Ghosh", color:"var(--lime)", vals:[0.8,0.5,0.05,0.95] }
+];
+const axes = ["Power","Consistency","Bowling","Finishing"];
+(function drawRadar() {
+  const svg = document.getElementById("radar");
+  const cx = 160, cy = 150, R = 105;
+  const ns = "http://www.w3.org/2000/svg";
+  function point(i, val) {
+    const angle = (Math.PI * 2 * i) / axes.length - Math.PI / 2;
+    const r = R * val;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  }
+  for (let ring = 1; ring <= 3; ring++) {
+    const poly = document.createElementNS(ns, "polygon");
+    const pts = axes.map((_, i) => point(i, ring / 3).join(",")).join(" ");
+    poly.setAttribute("points", pts);
+    poly.setAttribute("fill", "none");
+    poly.setAttribute("stroke", "rgba(255,255,255,.14)");
+    svg.appendChild(poly);
+  }
+  axes.forEach((label, i) => {
+    const [x, y] = point(i, 1.16);
+    const [x2, y2] = point(i, 1);
+    const line = document.createElementNS(ns, "line");
+    line.setAttribute("x1", cx); line.setAttribute("y1", cy);
+    line.setAttribute("x2", x2); line.setAttribute("y2", y2);
+    line.setAttribute("stroke", "rgba(255,255,255,.14)");
+    svg.appendChild(line);
+    const text = document.createElementNS(ns, "text");
+    text.setAttribute("x", x); text.setAttribute("y", y);
+    text.setAttribute("fill", "#a49ba8");
+    text.setAttribute("font-size", "11");
+    text.setAttribute("text-anchor", "middle");
+    text.textContent = label;
+    svg.appendChild(text);
+  });
+  radarData.forEach(p => {
+    const pts = p.vals.map((v, i) => point(i, v).join(",")).join(" ");
+    const poly = document.createElementNS(ns, "polygon");
+    poly.setAttribute("points", pts);
+    poly.setAttribute("fill", p.color);
+    poly.setAttribute("fill-opacity", "0.12");
+    poly.setAttribute("stroke", p.color);
+    poly.setAttribute("stroke-width", "2");
+    svg.appendChild(poly);
+  });
+})();
+
+(function drawTrend() {
+  const svg = document.getElementById("trend");
+  const ns = "http://www.w3.org/2000/svg";
+  const years = ["2017","2019","2021","2023","2026"];
+  const rates = [0.36, 0.41, 0.44, 0.5, 0.58];
+  const W = 600, H = 220, pad = 30;
+  const pts = rates.map((r, i) => {
+    const x = pad + (i / (rates.length - 1)) * (W - pad * 2);
+    const y = H - pad - r * (H - pad * 2) * 1.4;
+    return [x, y];
+  });
+  const path = document.createElementNS(ns, "path");
+  const d = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0] + "," + p[1]).join(" ");
+  path.setAttribute("d", d);
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", "url(#grad)");
+  path.setAttribute("stroke-width", "3");
+  const defs = document.createElementNS(ns, "defs");
+  const grad = document.createElementNS(ns, "linearGradient");
+  grad.setAttribute("id", "grad"); grad.setAttribute("x1", "0"); grad.setAttribute("x2", "1");
+  const stop1 = document.createElementNS(ns, "stop");
+  stop1.setAttribute("offset", "0%"); stop1.setAttribute("stop-color", "#4fe3ff");
+  const stop2 = document.createElementNS(ns, "stop");
+  stop2.setAttribute("offset", "100%"); stop2.setAttribute("stop-color", "#ff4fa3");
+  grad.appendChild(stop1); grad.appendChild(stop2); defs.appendChild(grad);
+  svg.appendChild(defs);
+  svg.appendChild(path);
+  pts.forEach((p, i) => {
+    const c = document.createElementNS(ns, "circle");
+    c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", "4.5");
+    c.setAttribute("fill", "#08070b"); c.setAttribute("stroke", "#ff4fa3"); c.setAttribute("stroke-width", "2");
+    svg.appendChild(c);
+    const t = document.createElementNS(ns, "text");
+    t.setAttribute("x", p[0]); t.setAttribute("y", H - 8);
+    t.setAttribute("fill", "#a49ba8"); t.setAttribute("font-size", "11"); t.setAttribute("text-anchor", "middle");
+    t.textContent = years[i];
+    svg.appendChild(t);
+    const lbl = document.createElementNS(ns, "text");
+    lbl.setAttribute("x", p[0]); lbl.setAttribute("y", p[1] - 12);
+    lbl.setAttribute("fill", "#d8ff4f"); lbl.setAttribute("font-size", "11"); lbl.setAttribute("text-anchor", "middle");
+    lbl.textContent = Math.round(rates[i] * 100) + "%";
+    svg.appendChild(lbl);
+  });
+})();
+
+const cv = document.getElementById("fx");
+const ctx = cv.getContext("2d");
+const spot = document.getElementById("spot");
+const dots = [];
+let W, H, mx = -999, my = -999;
+function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
+resize();
+addEventListener("resize", resize);
+for (let i = 0; i < 70; i++) {
+  dots.push({ x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:1+Math.random()*2.2, vx:0, vy:0, hue:Math.random()<0.5?330:190 });
+}
+addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; spot.style.left = mx + "px"; spot.style.top = my + "px"; });
+function frame() {
+  ctx.clearRect(0,0,W,H);
+  dots.forEach(p => {
+    const dx = mx-p.x, dy = my-p.y, d = Math.hypot(dx,dy);
+    if (d < 180) { p.vx += dx/d*0.03; p.vy += dy/d*0.03; }
+    p.vx += (Math.random()-0.5)*0.03; p.vy += (Math.random()-0.5)*0.03 - 0.004;
+    p.vx *= 0.97; p.vy *= 0.97;
+    p.x = (p.x+p.vx+W)%W; p.y = (p.y+p.vy+H)%H;
+    ctx.beginPath();
+    ctx.fillStyle = "hsl(" + p.hue + ",90%,70%)";
+    ctx.shadowColor = "hsl(" + p.hue + ",100%,60%)";
+    ctx.shadowBlur = 14;
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+  });
+  requestAnimationFrame(frame);
+}
+if (!still) frame();
+
+const chat = document.getElementById("chat");
+const chatBtn = document.getElementById("chatBtn");
+const log = document.getElementById("log");
+const input = document.getElementById("q");
+const sendBtn = document.getElementById("send");
+
+chatBtn.addEventListener("click", () => {
+  const open = chat.classList.toggle("open");
+  chatBtn.setAttribute("aria-expanded", open);
+  chatBtn.textContent = open ? "Close chat" : "Ask the analyst";
+  if (open) input.focus();
+});
+function addMsg(text, who) {
+  const p = document.createElement("p");
+  p.className = "msg " + who;
+  p.textContent = text;
+  log.appendChild(p);
+  log.scrollTop = log.scrollHeight;
+  return p;
+}
+function fallbackReply(q) {
+  const text = q.toLowerCase();
+  const tokens = text.split(/[^a-z0-9]+/).filter(Boolean);
+  if (/^(hi|hello|hey|yo)\b/.test(text.trim())) return topics.find(t=>t.words.includes("hi")).replies[0];
+  if (/\b(thanks|thank|thx)\b/.test(text)) return "Anytime! Try asking about the Asian Games final or the Lord's Test next.";
+  const idx = topics.findIndex(t => t.words.some(w => tokens.some(tok => tok === w || (w.length > 4 && tok.startsWith(w)))));
+  if (idx >= 0) {
+    const t = topics[idx];
+    const n = used[idx] = used[idx] === undefined ? 0 : used[idx] + 1;
+    return t.replies[n % t.replies.length];
+  }
+  return "I don't have a specific answer for that one yet — try asking about a player, strike rate, economy, the Asian Games final, or the Lord's Test.";
+}
+function typeOut(el, text) {
+  if (still) { el.textContent = text; return Promise.resolve(); }
+  return new Promise(done => {
+    let i = 0;
+    const timer = setInterval(() => {
+      i += 2;
+      el.textContent = text.slice(0, i);
+      log.scrollTop = log.scrollHeight;
+      if (i >= text.length) { clearInterval(timer); el.textContent = text; done(); }
+    }, 16);
+  });
+}
+async function ask(question) {
+  question = question.trim();
+  if (!question) return;
+  addMsg(question, "me");
+  input.value = "";
+  sendBtn.disabled = true;
+  const bubble = addMsg("Thinking...", "bot");
+  await new Promise(r => setTimeout(r, 500));
+  const answer = fallbackReply(question);
+  await typeOut(bubble, answer);
+  sendBtn.disabled = false;
+  log.scrollTop = log.scrollHeight;
+  input.focus();
+}
+sendBtn.addEventListener("click", () => ask(input.value));
+input.addEventListener("keydown", e => { if (e.key === "Enter") ask(input.value); });
+CONFIG.chips.forEach(text => {
+  const b = document.createElement("button");
+  b.textContent = text;
+  b.addEventListener("click", () => ask(text));
+  document.getElementById("chips").appendChild(b);
+});
+addMsg("Hi! Ask me about a player, a stat, the Asian Games final, or the Lord's Test.", "bot");
+</script>
+</body>
+</html>
